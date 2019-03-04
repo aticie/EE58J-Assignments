@@ -1,20 +1,25 @@
-import utilities
+import os
+import util
 
 if __name__=="__main__":
-    confectionery = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset\\confectionery"
-    icecream = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset\\icecream"
-    laundry = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset\\laundry"
-    soft1 = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset\\softdrinks-I"
-    soft2 = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset\\softdrinks-II"
 
-    utilities.resizeBatch(confectionery)
+    mainFolder = "C:\\EE58J - Data Mining for Visual Media\\Vispera-SKU101-2019\\SKU_Recognition_Dataset"
+
+    confectionery = os.path.join(mainFolder,"confectionery")
+    icecream = os.path.join(mainFolder,"icecream")
+    laundry = os.path.join(mainFolder,"laundry")
+    soft1 = os.path.join(mainFolder,"softdrinks-I")
+    soft2 = os.path.join(mainFolder,"softdrinks-II")
+
+    print("Resizing images...")
+    print("This usually takes 1 minute")
+    util.resizeBatch(confectionery)
     print("20%")
-    utilities.resizeBatch(icecream)
+    util.resizeBatch(icecream)
     print("40%")
-    utilities.resizeBatch(laundry)
+    util.resizeBatch(laundry)
     print("60%")
-    utilities.resizeBatch(soft1)
+    util.resizeBatch(soft1)
     print("80%")
-    utilities.resizeBatch(soft2)
+    util.resizeBatch(soft2)
     print("Done!")
-
