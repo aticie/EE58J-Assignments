@@ -7,10 +7,41 @@ import util
 from tkinter import *
 from tkinter import filedialog
 
-
 cwd = os.getcwd()
 
-def doEverything(data,sr,sc,shog,ws):
+
+def doEverything():
+    global folder_path
+    global sr_var
+    global sc_var
+    global shog_var
+    global wsSetBox
+    global binSetBox
+
+    mainFolder = folder_path.get()
+    sr = sr_var.get()
+    sc = sc_var.get()
+    shog = shog_var.get()
+    ws = int(wsSetBox.get())
+    bin_num = int(binSetBox.get())
+
+    print(sr)
+    print(sc)
+    print(shog)
+    try:
+        print(ws)
+    except:
+        print("Please enter an integer value for window size!")
+        return 0
+
+    if not 128 % ws == 0:
+        print("Sorry, 128 is not divisible by " + str(ws))
+        print("Please select an appropriate window amount")
+        return 0
+    if ws <= 0:
+        print("Window amount cannot be zero or negative.")
+        print("Setting for 1 window per image.")
+        ws = 1
     '''mainFolder = "C:\\EE58J - Data Mining for Visual Media\\Vispera-SKU101-2019\\SKU_Recognition_Dataset"
 
     parser = argparse.ArgumentParser(description='Main script for Assignment 1.')
@@ -32,83 +63,71 @@ def doEverything(data,sr,sc,shog,ws):
     
     mainFolder = args.Data'''
 
-    mainFolder = data
-
-    print(mainFolder)
-    
     confectionery = os.path.join(mainFolder, "confectionery")
     icecream = os.path.join(mainFolder, "icecream")
     laundry = os.path.join(mainFolder, "laundry")
     soft1 = os.path.join(mainFolder, "softdrinks-I")
     soft2 = os.path.join(mainFolder, "softdrinks-II")
 
-    if args.skipResize:
+    if sr:
 
         print("Resizing images skipped! (Assuming they are already resized)")
-        
+
     else:
 
         print("Resizing images...")
         print("This usually takes 1 minute")
+        print("[0%]-----------")
         util.resizeBatch(confectionery)
-        print("20%")
+        print("--[20%]--------")
         util.resizeBatch(icecream)
-        print("40%")
+        print("----[40%]------")
         util.resizeBatch(laundry)
-        print("60%")
+        print("------[60%]----")
         util.resizeBatch(soft1)
-        print("80%")
+        print("--------[80%]--")
         util.resizeBatch(soft2)
-        print("Done!")
+        print("---------[100%]")
+        print("Resizing Done!")
 
-    if args.skipColor:
+    if sc:
         print("Color Histogram part skipped!")
 
     else:
-        inputCorrect = False
-        while not inputCorrect:
-            ws = eval(input("Choose the window amount per image: "))
-            if not 128%ws == 0:
-                print("Sorry, 128 is not divisible by "+str(ws))
-                print("Please select an appropriate window amount")
-                continue
-            if ws <= 0:
-                print("Window amount cannot be zero or negative.")
-                continue
-            inputCorrect = True
-
         print("Creating color histograms...")
         print("[0%]-----------")
-        util.colorHist(confectionery, ws)
+        util.colorHist(confectionery, ws, bin_num)
         print("--[20%]--------")
-        util.colorHist(icecream, ws)
+        util.colorHist(icecream, ws, bin_num)
         print("----[40%]------")
-        util.colorHist(laundry, ws)
+        util.colorHist(laundry, ws, bin_num)
         print("------[60%]----")
-        util.colorHist(soft1, ws)
+        util.colorHist(soft1, ws, bin_num)
         print("--------[80%]--")
-        util.colorHist(soft2, ws)
+        util.colorHist(soft2, ws, bin_num)
         print("---------[100%]")
+        print("Color histograms created!")
 
-    if args.skipHog:
+    if shog:
         print("HOG Histogram part skipped!")
-        
-    else:
-        inputCorrect = False
-        while not inputCorrect:
-            ws = eval(input("Choose the window amount per image: "))
-            if not 128%ws == 0:
-                print("Sorry, 128 is not divisible by "+str(ws))
-                print("Please select an appropriate window amount")
-                continue
-            if ws <= 0:
-                print("Window amount cannot be zero or negative.")
-                continue
-            inputCorrect = True
-        util.HOGHist(confectionery,ws)
 
-def show_entry_fields():
-   print("Path: %s\n" % e1.get())
+    else:
+        print("Creating Gradient Orientation histograms...")
+        print("[0%]-----------")
+        util.HOGHist(confectionery, ws, bin_num)
+        print("--[20%]--------")
+        util.HOGHist(icecream, ws, bin_num)
+        print("----[40%]------")
+        util.HOGHist(laundry, ws, bin_num)
+        print("------[60%]----")
+        util.HOGHist(soft1, ws, bin_num)
+        print("--------[80%]--")
+        util.HOGHist(soft2, ws, bin_num)
+        print("---------[100%]")
+        print("Gradient Orientation histograms created!")
+
+    return 0
+
 
 def browse_button():
     # Allow user to select a directory and store it in global var
@@ -118,36 +137,45 @@ def browse_button():
     folder_path.set(filename)
     print(filename)
 
-def var_states():
-   print("Skip Resize: %d,\nSkip Color Hist.: %d\nSkip HOG: %d\n" % (var1.get(), var2.get(),var3.get()))
-    
-if __name__=="__main__":
+
+if __name__ == "__main__":
+    mainFolder = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset"
 
     master = Tk()
 
     folder_path = StringVar()
-    lbl1 = Label(master,textvariable=folder_path)
-    lbl1.grid(row=0, column=1)
+    folder_path.set(mainFolder)
+    lbl1 = Label(master, textvariable=folder_path)
+    lbl1.grid(row=1, column=0)
     button2 = Button(text="Browse", command=browse_button)
-    button2.grid(row=0, column=3)
+    button2.grid(row=0, column=1)
 
-    Label(master, text="Dataset root path").grid(row=0)
+    Label(master, text="Dataset root path").grid(row=0, sticky=W)
 
+    '''
     T = Text(master,height=1,width=50)
     T.grid(row=1)
     T.insert(END, cwd)
+    '''
 
-    var1 = IntVar()
-    Checkbutton(master, text="Skip Resize", variable=var1).grid(row=2, sticky=W)
-    var2 = IntVar()
-    Checkbutton(master, text="Skip Color Hist.", variable=var2).grid(row=3, sticky=W)
-    var3 = IntVar()
-    Checkbutton(master, text="Skip HOG", variable=var3).grid(row=4, sticky=W)
-    Button(master, text='Quit', command=master.quit).grid(row=5,column=0, sticky=W, pady=4)
-    Button(master, text='Show', command=var_states).grid(row=5, column=0, sticky=W, padx=45, pady=4)
+    sr_var = IntVar()
+    Checkbutton(master, text="Skip Resize", variable=sr_var).grid(row=2, sticky=W)
+    sc_var = IntVar()
+    Checkbutton(master, text="Skip Color Hist.", variable=sc_var).grid(row=3, sticky=W)
+    shog_var = IntVar()
+    Checkbutton(master, text="Skip HOG", variable=shog_var).grid(row=4, sticky=W)
+    Label(master, text="Window Size").grid(row=2, sticky=E)
+    Label(master, text="Window per row/col").grid(row=3, column=1, sticky=E)
+    Label(master, text="Ex. 1 for 1x1, 2 for 2x2").grid(row=4, column=1, sticky=E)
+    wsSetBox = Entry(master)
+    wsSetBox.insert(0, 1)
+    wsSetBox.grid(row=2, column=1)
+    binSetBox = Entry(master)
+    binSetBox.insert(0, 10)
+    binSetBox.grid(row=5, column=1)
+    Label(master, text="Histogram Bins").grid(row=5, sticky=E)
+
+    Button(master, text='Quit', command=master.quit).grid(row=5, column=0, sticky=W, pady=4)
+    Button(master, text='Run Process', command=doEverything).grid(row=5, column=0, sticky=W, padx=45, pady=4)
 
     mainloop()
-
-
-    
-    
