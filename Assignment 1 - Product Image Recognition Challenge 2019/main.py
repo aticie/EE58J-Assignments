@@ -129,6 +129,27 @@ def doEverything():
     return 0
 
 
+def classifier_run():
+    global classifier_type
+    global folder_path
+
+    main_folder = folder_path.get()
+
+    k = classifier_type.get()
+
+    if k == 1:
+        util.nnColor(main_folder)
+    elif k == 2:
+        util.nnOrient(main_folder)
+    elif k == 3:
+        util.nnCombine(main_folder)
+    else:
+        print("you shouldn't be able to do that...")
+        return 0
+
+    return 0
+
+
 def browse_button():
     # Allow user to select a directory and store it in global var
     # called folder_path
@@ -142,7 +163,7 @@ if __name__ == "__main__":
     mainFolder = "C:\\Users\\Administrator\\Downloads\\Vispera-SKU101-2019\\SKU_Recognition_Dataset"
 
     master = Tk()
-
+    # ----- Image Description Extraction Buttons -----
     folder_path = StringVar()
     folder_path.set(mainFolder)
     lbl1 = Label(master, textvariable=folder_path)
@@ -151,12 +172,6 @@ if __name__ == "__main__":
     button2.grid(row=0, column=1)
 
     Label(master, text="Dataset root path").grid(row=0, sticky=W)
-
-    '''
-    T = Text(master,height=1,width=50)
-    T.grid(row=1)
-    T.insert(END, cwd)
-    '''
 
     sr_var = IntVar()
     Checkbutton(master, text="Skip Resize", variable=sr_var).grid(row=2, sticky=W)
@@ -176,6 +191,18 @@ if __name__ == "__main__":
     Label(master, text="Histogram Bins").grid(row=5, sticky=E)
 
     Button(master, text='Quit', command=master.quit).grid(row=5, column=0, sticky=W, pady=4)
-    Button(master, text='Run Process', command=doEverything).grid(row=5, column=0, sticky=W, padx=45, pady=4)
+    Button(master, text='Run Image Description Process', command=doEverything).grid(row=5, column=0, sticky=W, padx=45,
+                                                                                    pady=4)
+
+    # ----- Classification Buttons -----
+
+    Label(master, text="----- Classification -----").grid(row=6, sticky=W)
+    Button(master, text='Quit', command=master.quit).grid(row=8, column=0, sticky=W, pady=4)
+    Button(master, text='Run Classifier', command=classifier_run).grid(row=8, column=0, sticky=W, padx=45, pady=4)
+    classifier_type = IntVar()
+
+    Radiobutton(master, text="NN - Color", variable=classifier_type, value=1).grid(row=7, sticky=W)
+    Radiobutton(master, text="NN - Orient", variable=classifier_type, value=2).grid(row=7, sticky=W, padx=85)
+    Radiobutton(master, text="NN - Combine", variable=classifier_type, value=3).grid(row=7, sticky=W, padx=175)
 
     mainloop()
