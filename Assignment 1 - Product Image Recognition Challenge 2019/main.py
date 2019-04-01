@@ -61,13 +61,13 @@ def doEverything():
     
     args = parser.parse_args()
     
-    mainFolder = args.Data'''
-
+    mainFolder = args.Data
     confectionery = os.path.join(mainFolder, "confectionery")
     icecream = os.path.join(mainFolder, "icecream")
     laundry = os.path.join(mainFolder, "laundry")
     soft1 = os.path.join(mainFolder, "softdrinks-I")
     soft2 = os.path.join(mainFolder, "softdrinks-II")
+    '''
 
     if sr:
 
@@ -77,6 +77,8 @@ def doEverything():
 
         print("Resizing images...")
         print("This usually takes 1 minute")
+        util.resizeBatch(mainFolder)
+        '''
         print("[0%]-----------")
         util.resizeBatch(confectionery)
         print("--[20%]--------")
@@ -89,11 +91,12 @@ def doEverything():
         util.resizeBatch(soft2)
         print("---------[100%]")
         print("Resizing Done!")
-
+        '''
     if sc:
         print("Color Histogram part skipped!")
 
     else:
+        '''
         print("Creating color histograms...")
         print("[0%]-----------")
         util.colorHist(confectionery, ws, bin_num)
@@ -107,11 +110,17 @@ def doEverything():
         util.colorHist(soft2, ws, bin_num)
         print("---------[100%]")
         print("Color histograms created!")
+        '''
+        print("Creating color histograms...")
+        util.colorHist(mainFolder, ws, bin_num)
 
     if shog:
         print("HOG Histogram part skipped!")
 
     else:
+        print("Creating Gradient Orientation histograms...")
+        util.HOGHist(mainFolder, ws, bin_num)
+        '''
         print("Creating Gradient Orientation histograms...")
         print("[0%]-----------")
         util.HOGHist(confectionery, ws, bin_num)
@@ -125,7 +134,7 @@ def doEverything():
         util.HOGHist(soft2, ws, bin_num)
         print("---------[100%]")
         print("Gradient Orientation histograms created!")
-
+        '''
     return 0
 
 

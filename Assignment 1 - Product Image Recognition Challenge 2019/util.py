@@ -57,7 +57,7 @@ def colorHist(path, windowNr, bin_num):
                 full_hsv_hist = []
                 for i in range(windowNr):
                     for j in range(windowNr):
-                        window = im[i * stride:(i + 1) * stride, j * stride:(j + 1) * stride]
+                        window = HSV_im[i * stride:(i + 1) * stride, j * stride:(j + 1) * stride]
                         '''
                         ----DEBUG----
                         print(window[:,:,0].shape)
@@ -169,6 +169,7 @@ def nnOrient(data_path):
     test_amnt = 0
     correct_count = 0
     prev_root = ""
+    correctness_dict = dict()
     for root, dirs, files in os.walk(data_path, topdown=False):
         for name in files:
             if name == ".DS_Store":
@@ -194,6 +195,8 @@ def nnOrient(data_path):
                             min_mean = current_mean
                             right_index = index
                     '''
+                    train_x = np.nan_to_num(train_x)
+                    test_x = np.nan_to_num(test_x)
                     mean_vector = np.mean(np.abs(test_x-train_x), axis=2)
                     try:
                         mean_vector = np.sum(mean_vector, axis=1)
@@ -201,6 +204,11 @@ def nnOrient(data_path):
                         mean_vector = mean_vector
                     min_mean_ind = np.argmin(mean_vector)
                     if test_real == train_y[min_mean_ind]:
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['correct'] += 1
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 1, 'total': 1}
                         #print("Correct!")
                         if one_up == "confectionery":
                             conf_correct_count += 1
@@ -224,6 +232,10 @@ def nnOrient(data_path):
                         if not test_amnt%250:
                             print("Accuracy :" + str(acc * 100) + "%")
                     else:
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 0, 'total': 1}
                         #print("False!")
                         #print("Real class was: " + test_real)
                         #print("NN guessed: " + train_y[right_index])
@@ -243,6 +255,20 @@ def nnOrient(data_path):
                         #print("Accuracy :" + str(acc * 100) + "\%")
                         if not test_amnt%250:
                             print("Accuracy :" + str(acc * 100) + "%")
+
+    min_class_acc = 100
+    min_class = ""
+    min_c = 0
+    min_t = 0
+    for key, value in correctness_dict.items():
+        class_acc = value['correct'] / value['total']
+        if class_acc < min_class_acc:
+            min_class = key
+            min_class_acc = class_acc
+            min_c = value['correct']
+            min_t = value['total']
+
+    print("Min acc class: ", min_class, " with acc: ", min_class_acc, " - ", min_c, "/", min_t)
 
     acc = correct_count / test_amnt
     conf_acc = conf_correct_count / conf_test_amnt
@@ -313,6 +339,7 @@ def nnColor(data_path):
     test_amnt = 0
     correct_count = 0
     prev_root = ""
+    correctness_dict = dict()
     for root, dirs, files in os.walk(data_path, topdown=False):
         for name in files:
             if name == ".DS_Store":
@@ -338,6 +365,9 @@ def nnColor(data_path):
                             min_mean = current_mean
                             right_index = index
                     '''
+                    train_x = np.nan_to_num(train_x)
+                    test_x = np.nan_to_num(test_x)
+
                     mean_vector = np.mean(np.abs(test_x - train_x), axis=2)
                     try:
                         mean_vector = np.sum(mean_vector, axis=1)
@@ -346,6 +376,11 @@ def nnColor(data_path):
                     min_mean_ind = np.argmin(mean_vector)
                     if test_real == train_y[min_mean_ind]:
                         # print("Correct!")
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['correct'] += 1
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 1, 'total': 1}
                         if one_up == "confectionery":
                             conf_correct_count += 1
                             conf_test_amnt += 1
@@ -372,6 +407,10 @@ def nnColor(data_path):
                         # print("Real class was: " + test_real)
                         # print("NN guessed: " + train_y[right_index])
                         # print("Min-mean was: " + str(min_mean))
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 0, 'total': 1}
                         if one_up == "confectionery":
                             conf_test_amnt += 1
                         if one_up == "icecream":
@@ -387,6 +426,20 @@ def nnColor(data_path):
                         # print("Accuracy :" + str(acc * 100) + "\%")
                         if not test_amnt % 250:
                             print("Accuracy :" + str(acc * 100) + "%")
+
+    min_class_acc = 100
+    min_class = ""
+    min_c = 0
+    min_t = 0
+    for key, value in correctness_dict.items():
+        class_acc = value['correct']/value['total']
+        if class_acc < min_class_acc:
+            min_class = key
+            min_class_acc = class_acc
+            min_c = value['correct']
+            min_t = value['total']
+
+    print("Min acc class: ", min_class, " with acc: ", min_class_acc, " - ", min_c, "/", min_t)
 
     acc = correct_count / test_amnt
     conf_acc = conf_correct_count / conf_test_amnt
@@ -482,7 +535,7 @@ def nnCombine(data_path):
     laun_correct_count = 0
     soft1_correct_count = 0
     soft2_correct_count = 0
-
+    correctness_dict = dict()
     test_amnt = 0
     correct_count = 0
     prev_root = ""
@@ -515,6 +568,10 @@ def nnCombine(data_path):
                             min_mean = current_mean
                             right_index = index
                     '''
+                    or_train_x = np.nan_to_num(or_train_x)
+                    or_test_x = np.nan_to_num(or_test_x)
+                    cl_train_x = np.nan_to_num(cl_train_x)
+                    cl_test_x = np.nan_to_num(cl_test_x)
                     cl_mean_vector = np.mean(np.abs(cl_test_x - cl_train_x), axis=2)
                     or_mean_vector = np.mean(np.abs(or_test_x - or_train_x), axis=2)
                     mean_vector = or_mean_vector + cl_mean_vector
@@ -524,6 +581,11 @@ def nnCombine(data_path):
                         mean_vector = mean_vector
                     min_mean_ind = np.argmin(mean_vector)
                     if test_real == cl_train_y[min_mean_ind]:
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['correct'] += 1
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 1, 'total': 1}
                         if one_up == "confectionery":
                             conf_correct_count += 1
                             conf_test_amnt += 1
@@ -551,6 +613,10 @@ def nnCombine(data_path):
                         # print("Real class was: " + test_real)
                         # print("NN guessed: " + train_y[right_index])
                         # print("Min-mean was: " + str(min_mean))
+                        if test_real in correctness_dict:
+                            correctness_dict[test_real]['total'] += 1
+                        else:
+                            correctness_dict[test_real] = {'correct': 0, 'total': 1}
                         if one_up == "confectionery":
                             conf_test_amnt += 1
                         if one_up == "icecream":
@@ -567,6 +633,19 @@ def nnCombine(data_path):
                         if not test_amnt % 250:
                             print("Accuracy :" + str(acc * 100) + "%")
 
+    min_class_acc = 100
+    min_class = ""
+    min_c = 0
+    min_t = 0
+    for key, value in correctness_dict.items():
+        class_acc = value['correct'] / value['total']
+        if class_acc < min_class_acc:
+            min_class = key
+            min_class_acc = class_acc
+            min_c = value['correct']
+            min_t = value['total']
+
+    print("Min acc class: ", min_class, " with acc: ", min_class_acc, " - ", min_c, "/", min_t)
 
     acc = correct_count / test_amnt
     conf_acc = conf_correct_count / conf_test_amnt
