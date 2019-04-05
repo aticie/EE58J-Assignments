@@ -3,8 +3,6 @@ import numpy as np
 import cv2
 import copy
 from scipy.signal import convolve2d
-from tkinter import *
-from tkinter import filedialog
 
 cwd = os.getcwd()
 
