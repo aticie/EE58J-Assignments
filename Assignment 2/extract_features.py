@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import cv2
-import copy
 from scipy.signal import convolve2d
+import skimage.measure
 
 cwd = os.getcwd()
 
@@ -18,7 +18,8 @@ def feature_extraction(im, rfs):
         feature_r = convolve2d(im[:, :, 2], filter, mode='same', boundary='symm')
         feature_maps.append([feature_r, feature_g, feature_b])
 
-    return feature_maps
+    np_fm = np.array(feature_maps)
+    return np_fm
 
 
 def apply_relu(fm):
@@ -26,21 +27,23 @@ def apply_relu(fm):
     return result
 
 
-def reduce_dimension(feature_maps, stride):
-    imsize = 128
-    new_fm = []
-    new_fm_w = np.zeros((int(128/stride), int(128/stride)))
-    for im in feature_maps:
-        for channel in im:
-            for i in range(0, imsize, stride):
-                for j in range(0, imsize, stride):
-                    window = channel[j:(j+1)*stride, i:(i+1)*stride]
-                    w_max = np.max(window)
-                    new_fm_w[int(j/stride), int(i/stride)] = w_max
+def scikit_reduce(feature_maps, kernel_size):
 
-            new_fm.append(copy.deepcopy(new_fm_w))
+    new_fm = np.zeros((38, 16, 16, 3))
+    for ind, im in enumerate(feature_maps):
+        new_fm[ind, :, :, 0] = skimage.measure.block_reduce(im[:, :, 0], kernel_size, np.max)
+        new_fm[ind, :, :, 1] = skimage.measure.block_reduce(im[:, :, 1], kernel_size, np.max)
+        new_fm[ind, :, :, 2] = skimage.measure.block_reduce(im[:, :, 2], kernel_size, np.max)
 
     return new_fm
+
+
+def normalize(array):
+    min = array.min()
+    array = np.subtract(array, min)
+    max = array.max()
+    array = np.divide(array, max)
+    return array
 
 
 if __name__ == "__main__":
@@ -54,7 +57,11 @@ if __name__ == "__main__":
 
     prev_root = ""
     for root, dirs, files in os.walk(mainFolder):
+        file_list = [name for name in files if name.endswith(".jpg")]
+        i = 0
         for name in files:
+            i += 1
+            print(str(i)+"/"+str(len(files)))
             im_class = os.path.basename(os.path.normpath(root))
             if not root == prev_root:
                 prev_root = root
@@ -69,7 +76,7 @@ if __name__ == "__main__":
                 im = cv2.imread(im_path)
                 fm = feature_extraction(im, rfs)
                 fm_relu = apply_relu(fm)
-                result = reduce_dimension(fm_relu, ws)
+                result = scikit_reduce(fm_relu, (ws, ws))
                 np.save(save_im, result)
 
 
