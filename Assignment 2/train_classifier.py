@@ -21,17 +21,20 @@ x_test, y_test = load_data(test_folder)
 y_test = label_to_num(y_test)
 #setattr(AdaBoostClassifier, "n_classes", 20)
 
-cls100 = AdaBoostClassifier(n_estimators=100)
+iters = [1000, 5000]
 
-start = time.time()
-cls100.fit(x, y)
-y_predict100 = cls100.predict(x_test)
-y_train100 = cls100.predict(x)
-np.save(os.path.join(prediction_folder, "100_iter.npy"), y_predict100)
-pickle.dump(cls100, open(os.path.join(model_folder, "cls100.p"), "wb"))
+for iter in iters:
+    c = AdaBoostClassifier(n_estimators=iter)
+    start = time.time()
+    c.fit(x, y)
+    y_predict100 = c.predict(x_test)
+    np.save(os.path.join(prediction_folder, "{}_iter.npy".format(iter)), y_predict100)
+    pickle.dump(c, open(os.path.join(model_folder, "cls{}.p".format(iter)), "wb"))
 
-end = time.time()
+    end = time.time()
 
-total = end - start
+    total = end - start
 
-print("100 iterations is done, took " + str(total) + " secs")
+    print("{} iterations is done, took ".format(iter) + str(total) + " secs")
+
+
