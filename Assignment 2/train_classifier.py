@@ -1,5 +1,5 @@
 from sklearn.ensemble import AdaBoostClassifier
-from utils import load_data, label_to_num
+from utils import load_datav2, label_to_num
 import os
 import numpy as np
 import pickle
@@ -15,23 +15,28 @@ if not os.path.exists(model_folder):
 prediction_folder = os.path.join(cwd, "predictions")
 if not os.path.exists(prediction_folder):
     os.mkdir(prediction_folder)
-x, y = load_data(train_folder)
-y = label_to_num(y)
-x_test, y_test = load_data(test_folder)
-y_test = label_to_num(y_test)
-#setattr(AdaBoostClassifier, "n_classes", 20)
+x, y = load_datav2(train_folder)
 
-cls100 = AdaBoostClassifier(n_estimators=100)
+iters = [100, 500, 1000, 5000]
 
-start = time.time()
-cls100.fit(x, y)
-y_predict100 = cls100.predict(x_test)
-y_train100 = cls100.predict(x)
-np.save(os.path.join(prediction_folder, "100_iter.npy"), y_predict100)
-pickle.dump(cls100, open(os.path.join(model_folder, "cls100.p"), "wb"))
+cls = []
+for i in iters:
+    cls.append(AdaBoostClassifier(n_estimators=i))
 
-end = time.time()
+y = y.flatten()
 
-total = end - start
+for idx, iter in enumerate(iters):
+    if iter == 500 or iter == 5000 or iter == 1000:
+        continue
+    start = time.time()
+    c = cls[idx]
+    c.fit(x, y)
+    y_predict = c.predict(x)
+    np.save(os.path.join(prediction_folder, "{}_iter.npy".format(iter)), y_predict)
+    pickle.dump(c, open(os.path.join(model_folder, "cls{}.p".format(iter)), "wb"))
 
-print("100 iterations is done, took " + str(total) + " secs")
+    end = time.time()
+
+    total = end - start
+
+    print("{} iterations is done, took ".format(iter) + str(total) + " secs")
