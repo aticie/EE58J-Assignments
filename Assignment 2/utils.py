@@ -10,11 +10,17 @@ cwd = os.getcwd()
 
 def compare_two(list_a, list_b):
     result = []
+    errMatrix = np.zeros((2, 2))
     for a, b in zip(list_a, list_b):
         if a == b:
             result.append(a)
+        if a == -1:
+            a = 0
+        if b == -1:
+            b = 0
+        errMatrix[a, b] = errMatrix[a, b]+1
 
-    return result
+    return result, errMatrix
 
 
 def load_models():
@@ -22,8 +28,9 @@ def load_models():
     dirlist = os.listdir(path)
     models = []
     for file in dirlist:
-        model_path = os.path.join(path, file)
-        models.append(p.load(open(model_path, "rb")))
+        if file.endswith('.p'):
+            model_path = os.path.join(path, file)
+            models.append(p.load(open(model_path, "rb")))
 
     return models
 
@@ -33,8 +40,9 @@ def load_predictions():
     dirlist = os.listdir(path)
     pred = []
     for file in dirlist:
-        file_path = os.path.join(path, file)
-        pred.append(np.load(file_path))
+        if file.endswith('.npy'):
+            file_path = os.path.join(path, file)
+            pred.append(np.load(file_path))
 
     pred = np.array(pred)
 
@@ -62,7 +70,7 @@ def load_data(x_folder):
     return x, y
 
 
-def load_datav2(x_folder):
+def load_datav2(x_folder, test=False):
     dirlist = os.listdir(x_folder)
     x = []
     y = []
@@ -72,18 +80,29 @@ def load_datav2(x_folder):
         classes = os.path.join(x_folder, folder)
 
         file_list = os.listdir(classes)
-
-        for name in file_list:
-            item = os.path.join(classes, name)
-            item = os.path.join(item, "total.npy")
-            x_vals = np.load(item)
-            size, _, _, _, _ = x_vals.shape
-            for i in x_vals:
-                x.append(i.flatten())
-                if folder == "confectionery":
-                    y.append(1)
-                else:
-                    y.append(-1)
+        if test:
+            items = os.listdir(classes)
+            for item in items:
+                item = os.path.join(classes, item)
+                test_vals = np.load(item)
+                for i in test_vals:
+                    x.append(i.flatten())
+                    if folder == "confectionery":
+                        y.append(1)
+                    else:
+                        y.append(-1)
+        else:
+            for name in file_list:
+                item = os.path.join(classes, name)
+                item = os.path.join(item, "total_train.npy")
+                x_vals = np.load(item)
+                size = x_vals.shape[0]
+                for i in x_vals:
+                    x.append(i.flatten())
+                    if folder == "confectionery":
+                        y.append(1)
+                    else:
+                        y.append(-1)
 
     x = np.array(x)
     y = np.array(y)
@@ -104,37 +123,49 @@ def label_to_num(y_labeled):
 
 
 def create_test(path):
-    save_path = os.path.join(path, "test")
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
-    dirlist = os.listdir(path)
+    save_path_init = os.path.join(cwd, "test")
+    if not os.path.exists(save_path_init):
+        os.mkdir(save_path_init)
+    dirlist_in = os.listdir(path)
+    for c in dirlist_in:
+        c_path = os.path.join(path, c)
+        save_path = os.path.join(save_path_init, c)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        dirlist = os.listdir(c_path)
+        for folder in dirlist:
+            # Path for 6973, 6574 class names
+            x = []
+            x_train = []
+            classes = os.path.join(c_path, folder)
+            total = os.path.join(classes, "total.npy")
+            total_array = np.load(total)
+            for inst in total_array:
+                x.append(inst)
 
-    for folder in dirlist:
-        # Path for 6973, 6574 class names
-        classes = os.path.join(path, folder)
+            amount, _, _, _, _ = total_array.shape
+            test_amount = amount//5
 
-        file_list = os.listdir(classes)
-
-        files = [name for name in file_list if name.endswith(".npy")]
-
-        test_amount = len(files)//5
-
-        print("Total files: " + str(len(files)))
-        print("Test files: " + str(test_amount))
-
-        chosen_samples = random.sample(files, k=test_amount)
-
-        for item in chosen_samples:
-
-            current_file_path = os.path.join(classes, item)
-
+            print("Total files: " + str(amount))
+            print("Test files: " + str(test_amount))
+            test_array = random.sample(x, k=test_amount)
+            add = True
+            for inst in x:
+                for inst2 in test_array:
+                    if np.array_equal(inst, inst2):
+                        add = False
+                        break
+                    else:
+                        add = True
+                        continue
+                if add:
+                    x_train.append(inst)
             save_path_class = os.path.join(save_path, folder)
             if not os.path.exists(save_path_class):
                 os.mkdir(save_path_class)
-
-            save_path_item = os.path.join(save_path_class, item)
-
-            os.rename(current_file_path, save_path_item)
+            np.save(save_path_class, test_array)
+            train_save_path = os.path.join(classes, "total_train.npy")
+            np.save(train_save_path, x_train)
 
 
 def convolve(im, rfs):
